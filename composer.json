@@ -1,0 +1,33 @@
+{
+    "name": "miserenkov/yii2-security",
+    "description": "Yii2 extension for openssl encryption by public/private keys",
+    "keywords": ["yii2", "security", "openssl", "public", "private", "keys", "encrypt", "decrypt"],
+    "type": "yii2-extension",
+    "license": "MIT",
+    "support": {
+        "email": "mi.serenkov@gmail.com",
+        "issues": "https://github.com/miserenkov/yii2-security/issues",
+        "source": "https://github.com/miserenkov/yii2-security"
+    },
+    "authors": [
+        {
+            "name": "Misha Serenkov",
+            "email": "mi.serenkov@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "miserenkov\\security\\": "src"
+        }
+    },
+    "suggest": {
+        "ext-openssl": "This library needs OpenSSL"
+    },
+    "require": {
+        "php": ">=5.5.0",
+        "yiisoft/yii2": "^2.0"
+    },
+    "require-dev": {
+        "codeception/codeception": "^2.2"
+    }
+}
