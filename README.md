@@ -11,7 +11,6 @@ Yii2 extension for encryption and decryption by openssl public/private keys
 
 [GitHub issues](https://github.com/miserenkov/yii2-security).
 
-
 ## Installation
 
 The preferred way to install this extension is through [composer](http://getcomposer.org/download/).
@@ -29,3 +28,20 @@ or add
 ```
 
 to the require section of your `composer.json` file.
+
+## Configuration
+
+To use security extension, you should configure it in the application configuration like the following
+```php
+'components' => [
+    ...
+    'security' => [
+        'class' => 'miserenkov\security\Security',
+    ],
+    ...
+],
+```
+
+## Basic usages
+
+#### Usage
