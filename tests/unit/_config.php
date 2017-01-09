@@ -13,5 +13,9 @@ return [
     'basePath' => \Yii::getAlias('@tests'),
     'runtimePath' => \Yii::getAlias('@tests/_output'),
     'bootstrap' => [],
-    'components' => [],
+    'components' => [
+        'security' => [
+            'class' => 'miserenkov\security\Security',
+        ],
+    ],
 ];
