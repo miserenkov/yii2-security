@@ -23,4 +23,55 @@ class ComponentTest extends Codeception\Test\Unit
         $component = Yii::$app->get('security');
         $this->assertInstanceOf('miserenkov\security\Security', $component);
     }
+
+    public function testCorrectEncryptionAndDecryption()
+    {
+        for ($i = 0; $i < 10; $i++) {
+            $originText = Yii::$app->security->generateRandomString(rand(1, 100));
+
+            $encryptedText = Yii::$app->security->encryptByPublicKey($originText);
+
+            $decryptedText = Yii::$app->security->decryptByPrivateKey($encryptedText);
+
+            $this->assertEquals($originText, $decryptedText);
+        }
+    }
+
+    public function testCorrectEncryptionAndDecryptionInOtherKeyPair()
+    {
+        for ($i = 0; $i < 5; $i++) {
+            $originText = Yii::$app->security->generateRandomString(rand(1, 100));
+
+            $encryptedText = Yii::$app->security->encryptByPublicKey($originText, '@data/pub_key.pem.2');
+
+            $decryptedText = Yii::$app->security->decryptByPrivateKey($encryptedText, '@data/priv_key.pem.2');
+
+            $this->assertEquals($originText, $decryptedText);
+        }
+
+        for ($i = 0; $i < 5; $i++) {
+            $originText = Yii::$app->security->generateRandomString(rand(1, 100));
+
+            $encryptedText = Yii::$app->security->encryptByPublicKey($originText, '@data/pub_key.pem.3');
+
+            $decryptedText = Yii::$app->security->decryptByPrivateKey($encryptedText, '@data/priv_key.pem.3');
+
+            $this->assertEquals($originText, $decryptedText);
+        }
+    }
+
+    public function testIncorrectPublicPrivatePair()
+    {
+        $caught = false;
+        try {
+            $originText = Yii::$app->security->generateRandomString(rand(1, 100));
+
+            $encryptedText = Yii::$app->security->encryptByPublicKey($originText, '@data/pub_key.pem.1');
+
+            Yii::$app->security->decryptByPrivateKey($encryptedText, '@data/priv_key.pem.2');
+        } catch (\yii\base\Exception $e) {
+            $caught = true;
+        }
+        $this->assertTrue($caught, 'Caught exception');
+    }
 }

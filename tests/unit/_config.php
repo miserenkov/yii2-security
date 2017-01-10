@@ -16,6 +16,8 @@ return [
     'components' => [
         'security' => [
             'class' => 'miserenkov\security\Security',
+            'publicKeyFile' => '@data/pub_key.pem.1',
+            'privateKeyFile' => '@data/priv_key.pem.1',
         ],
     ],
 ];
