@@ -1,0 +1,18 @@
+imports:
+    - php
+
+tools:
+    external_code_coverage:
+        timeout: 2100 # Timeout in seconds.
+    # disable copy paste detector and similarity analyzer as they have no real value
+    # and a huge bunch of false-positives
+    php_sim: false
+    php_cpd: false
+build:
+    tests:
+        override:
+            -
+                command: 'vendor/bin/codecept run --coverage --coverage-xml'
+                coverage:
+                    file: 'tests/_output/coverage.xml'
+                    format: 'clover'

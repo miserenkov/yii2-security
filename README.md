@@ -6,6 +6,8 @@ Yii2 extension for encryption and decryption by openssl public/private keys
 [![Latest Unstable Version](https://poser.pugx.org/miserenkov/yii2-security/v/unstable)](https://packagist.org/packages/miserenkov/yii2-security)
 [![Total Downloads](https://poser.pugx.org/miserenkov/yii2-security/downloads)](https://packagist.org/packages/miserenkov/yii2-security)
 [![Build Status](https://travis-ci.org/miserenkov/yii2-security.svg?branch=master)](https://travis-ci.org/miserenkov/yii2-security)
+[![Dependency Status](https://www.versioneye.com/user/projects/5876351c9fb7130049911798/badge.svg?style=flat-square)](https://www.versioneye.com/user/projects/5876351c9fb7130049911798)
+[![HHVM Status](http://hhvm.h4cc.de/badge/miserenkov/yii2-security.svg)](http://hhvm.h4cc.de/package/miserenkov/yii2-security)
 
 ## Support
 
