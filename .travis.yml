@@ -14,6 +14,11 @@ matrix:
     - php: hhvm-3.6
     - php: nightly
 
+cache:
+  directories:
+    - vendor
+    - $HOME/.composer/cache
+
 install:
   - composer self-update
   - composer global require "fxp/composer-asset-plugin:*"

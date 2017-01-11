@@ -89,7 +89,7 @@ class ComponentTest extends Codeception\Test\Unit
 
     public function testHybridEncryption()
     {
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 20; $i++) {
             $originText = Yii::$app->security->generateRandomString(rand(100, 1000));
 
             $encryptedText = Yii::$app->security->encryptHybrid($originText);
