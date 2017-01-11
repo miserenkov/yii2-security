@@ -74,4 +74,16 @@ class ComponentTest extends Codeception\Test\Unit
         }
         $this->assertTrue($caught, 'Caught exception');
     }
+
+    public function testIsTooLongDataForEncryption()
+    {
+        $caught = false;
+        try {
+            Yii::$app->security->encryptByPublicKey(Yii::$app->security->generateRandomString(1000));
+        } catch (InvalidArgumentException $exception) {
+            $caught = true;
+        }
+
+        $this->assertTrue($caught, 'Caught exception');
+    }
 }

@@ -51,6 +51,27 @@ class Security extends \yii\base\Security
      */
     private $publicKey;
 
+    /**
+     * @var int
+     */
+    private $dataMaxLength;
+
+    /**
+     * @var array
+     */
+    private $paddingLengths = [
+        OPENSSL_PKCS1_PADDING => 11,
+        OPENSSL_SSLV23_PADDING => 11,
+        OPENSSL_NO_PADDING => 0,
+        OPENSSL_PKCS1_OAEP_PADDING => 42,
+    ];
+
+    /**
+     * OpenSSL padding
+     * @var int
+     */
+    private $padding = OPENSSL_PKCS1_PADDING;
+
     public function init()
     {
         $this->loadKeys();
@@ -59,11 +80,12 @@ class Security extends \yii\base\Security
 
     /**
      * Encrypt $data by public key
-     * @param mixed $data
+     * @param string $data
      * @param null|string $publicKey
      * @return string
      * @throws Exception
      * @throws InvalidConfigException
+     * @throws \InvalidArgumentException
      */
     public function encryptByPublicKey($data, $publicKey = null)
     {
@@ -74,11 +96,16 @@ class Security extends \yii\base\Security
             throw new InvalidConfigException("Security::\$publicKey is $type, needed resource(OpenSSL key)");
         }
 
-        if (!is_string($data)) {
-            $data = Json::encode($data);
+        if (!is_string($data) && !is_numeric($data)) {
+            throw new \InvalidArgumentException('Data for encryption must be a string, found '.gettype($data));
         }
 
-        $encState = openssl_public_encrypt($data, $encrypted, $publicKey);
+        $maxDataLength = $this->getDataMaxLength($publicKey);
+        if (strlen($data) > $maxDataLength) {
+            throw new \InvalidArgumentException("Data for encryption is too long, must be maximum $maxDataLength symbols.");
+        }
+
+        $encState = openssl_public_encrypt($data, $encrypted, $publicKey, $this->padding);
 
         if ($encState) {
             return bin2hex($encrypted);
@@ -186,12 +213,17 @@ class Security extends \yii\base\Security
     {
         if ($this->privateKeyFile) {
             $this->privateKey = $this->loadPrivateKey($this->privateKeyFile, $this->passphrase);
+            $this->dataMaxLength = $this->getDataMaxLength($this->privateKey);
         }
 
         if ($this->publicKeyFile) {
             $this->publicKey = $this->loadPublicKey($this->publicKeyFile);
         } elseif ($this->certificateFile) {
             $this->publicKey = $this->loadPublicKey($this->certificateFile);
+        }
+
+        if ($this->publicKey && !$this->dataMaxLength) {
+            $this->dataMaxLength = $this->getDataMaxLength($this->publicKey);
         }
 
         if ($this->publicKey && $this->privateKey) {
@@ -203,5 +235,22 @@ class Security extends \yii\base\Security
                 throw new InvalidConfigException('Invalid public-private key pair');
             }
         }
+    }
+
+    /**
+     * Get maximum data length with padding
+     * @param $key
+     * @return int
+     */
+    protected function getDataMaxLength($key)
+    {
+        if (gettype($key) === 'resource') {
+            $key_details = openssl_pkey_get_details($key);
+            $data_length = strlen($key_details['rsa']['n']);
+
+            return $data_length - $this->paddingLengths[$this->padding];
+        }
+
+        return 0;
     }
 }
