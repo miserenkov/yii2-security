@@ -86,4 +86,17 @@ class ComponentTest extends Codeception\Test\Unit
 
         $this->assertTrue($caught, 'Caught exception');
     }
+
+    public function testHybridEncryption()
+    {
+        for ($i = 0; $i < 10; $i++) {
+            $originText = Yii::$app->security->generateRandomString(rand(100, 1000));
+
+            $encryptedText = Yii::$app->security->encryptHybrid($originText);
+
+            $decryptedText = Yii::$app->security->decryptHybrid($encryptedText);
+
+            $this->assertEquals($originText, $decryptedText);
+        }
+    }
 }

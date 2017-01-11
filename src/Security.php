@@ -79,6 +79,57 @@ class Security extends \yii\base\Security
     }
 
     /**
+     * @param string $data
+     * @param null $publicKey
+     * @return array
+     */
+    public function encryptHybrid($data, $publicKey = null)
+    {
+        $publicKey = $this->loadPublicKey($publicKey);
+        $rsaDataMaxLength = $this->getDataMaxLength($publicKey);
+        $sessionKey = $this->generateRandomKey($rsaDataMaxLength);
+
+        $encryptedData = $this->encryptByKey($data, $sessionKey);
+
+        $encryptedSessionKey = $this->encryptByPublicKey($sessionKey, $publicKey);
+
+        return [
+            'key' => $encryptedSessionKey,
+            'data' => base64_encode($encryptedData),
+        ];
+    }
+
+    /**
+     * @param array|string $data
+     * @param string|null $key
+     * @param null $privateKey
+     * @param string $passphrase
+     * @return string
+     */
+    public function decryptHybrid($data, $key = null, $privateKey = null, $passphrase = '')
+    {
+        $privateKey = $this->loadPrivateKey($privateKey);
+
+        if (is_array($data)) {
+            $key = isset($data['key']) ? $data['key'] : null;
+            $data = isset($data['data']) ? $data['data'] : null;
+        }
+
+        if (empty($data)) {
+            throw new \InvalidArgumentException("Empty data for decryption");
+        }
+        if (empty($key)) {
+            throw new \InvalidArgumentException("Empty decryption key");
+        }
+
+        $decryptedKey = $this->decryptByPrivateKey($key, $privateKey, $passphrase);
+
+        $decryptedData = $this->decryptByKey(base64_decode($data), $decryptedKey);
+
+        return $decryptedData;
+    }
+
+    /**
      * Encrypt $data by public key
      * @param string $data
      * @param null|string $publicKey
@@ -90,11 +141,6 @@ class Security extends \yii\base\Security
     public function encryptByPublicKey($data, $publicKey = null)
     {
         $publicKey = $this->loadPublicKey($publicKey);
-        if (!$publicKey || get_resource_type($publicKey) != 'OpenSSL key') {
-            $type = gettype($publicKey);
-            $type .= $type == 'resource' ? ('('.get_resource_type($publicKey).')') : '';
-            throw new InvalidConfigException("Security::\$publicKey is $type, needed resource(OpenSSL key)");
-        }
 
         if (!is_string($data) && !is_numeric($data)) {
             throw new \InvalidArgumentException('Data for encryption must be a string, found '.gettype($data));
@@ -108,7 +154,7 @@ class Security extends \yii\base\Security
         $encState = openssl_public_encrypt($data, $encrypted, $publicKey, $this->padding);
 
         if ($encState) {
-            return bin2hex($encrypted);
+            return base64_encode($encrypted);
         } else {
             throw new Exception('Encryption error: '.openssl_error_string());
         }
@@ -126,13 +172,8 @@ class Security extends \yii\base\Security
     public function decryptByPrivateKey($data, $privateKey = null, $passphrase = '')
     {
         $privateKey = $this->loadPrivateKey($privateKey, $passphrase);
-        if (!$privateKey || get_resource_type($privateKey) != 'OpenSSL key') {
-            $type = gettype($privateKey);
-            $type .= $type == 'resource' ? ('('.get_resource_type($privateKey).')') : '';
-            throw new InvalidConfigException("Security::\$privateKey is $type, needed resource(OpenSSL key)");
-        }
 
-        $decState = openssl_private_decrypt(hex2bin($data), $decrypted, $privateKey);
+        $decState = openssl_private_decrypt(base64_decode($data), $decrypted, $privateKey);
 
         if ($decState) {
             return $decrypted;
@@ -165,7 +206,9 @@ class Security extends \yii\base\Security
             $publicKey = openssl_pkey_get_public(@file_get_contents($filePath));
 
             if (!$publicKey || get_resource_type($publicKey) != 'OpenSSL key') {
-                throw new InvalidConfigException('Can not load public key');
+                $type = gettype($publicKey);
+                $type .= $type == 'resource' ? ('('.get_resource_type($publicKey).')') : '';
+                throw new InvalidConfigException("Security::\$publicKey is $type, needed resource(OpenSSL key)");
             }
         }
 
@@ -198,7 +241,9 @@ class Security extends \yii\base\Security
             $privateKey = openssl_pkey_get_private(@file_get_contents($filePath), $passphrase);
 
             if (!$privateKey || get_resource_type($privateKey) != 'OpenSSL key') {
-                throw new InvalidConfigException('Can not load private key');
+                $type = gettype($privateKey);
+                $type .= $type == 'resource' ? ('('.get_resource_type($privateKey).')') : '';
+                throw new InvalidConfigException("Security::\$privateKey is $type, needed resource(OpenSSL key)");
             }
         }
 
@@ -244,6 +289,10 @@ class Security extends \yii\base\Security
      */
     protected function getDataMaxLength($key)
     {
+        if ((empty($key) || $key == $this->publicKey || $key == $this->privateKey) && $this->dataMaxLength) {
+            return $this->dataMaxLength;
+        }
+
         if (gettype($key) === 'resource') {
             $key_details = openssl_pkey_get_details($key);
             $data_length = strlen($key_details['rsa']['n']);
