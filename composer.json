@@ -24,8 +24,9 @@
         "ext-openssl": "This library needs OpenSSL"
     },
     "require": {
-        "php": ">=5.5.0",
-        "yiisoft/yii2": "^2.0"
+        "php": ">=5.6",
+        "yiisoft/yii2": "^2.0.13",
+        "ext-openssl": "*"
     },
     "require-dev": {
         "codeception/codeception": "^2.2"

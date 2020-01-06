@@ -70,7 +70,7 @@ class Security extends \yii\base\Security
      * OpenSSL padding
      * @var int
      */
-    private $padding = OPENSSL_PKCS1_PADDING;
+    private $padding = OPENSSL_PKCS1_OAEP_PADDING;
 
     public function init()
     {
@@ -173,7 +173,7 @@ class Security extends \yii\base\Security
     {
         $privateKey = $this->loadPrivateKey($privateKey, $passphrase);
 
-        $decState = openssl_private_decrypt(base64_decode($data), $decrypted, $privateKey);
+        $decState = openssl_private_decrypt(base64_decode($data), $decrypted, $privateKey, $this->padding);
 
         if ($decState) {
             return $decrypted;
